@@ -5,9 +5,10 @@ import os
 import uvicorn
 
 app = FastAPI(
-    title="Triturador / MarkItDown API",
-    description="API para conversão de URLs e arquivos para Markdown, compatível com ChatGPT Agent Builder.",
-    version="1.0.0"
+    title="Triturador MarkItDown",
+    description="Conversor de URLs e arquivos para Markdown. Use esta ação para ler conteúdo de sites e documentos.",
+    version="1.0.0",
+    servers=[{"url": "https://markitdown-mcp-lgqg.onrender.com", "description": "Servidor de Produção na Render"}]
 )
 
 md = MarkItDown()
