@@ -1,38 +1,50 @@
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException
 from markitdown import MarkItDown
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
+from fastapi.openapi.utils import get_openapi
 import os
 import uvicorn
 
-app = FastAPI(
-    title="Triturador MarkItDown",
-    description="Conversor de URLs e arquivos para Markdown. Use esta ação para ler conteúdo de sites e documentos.",
-    version="1.0.0",
-    servers=[{"url": "https://markitdown-mcp-lgqg.onrender.com", "description": "Servidor de Produção na Render"}]
-)
+app = FastAPI()
 
 md = MarkItDown()
 
 class ConversionRequest(BaseModel):
-    uri: HttpUrl
+    uri: str
 
 class ConversionResponse(BaseModel):
     markdown: str
 
-@app.post("/convert", response_model=ConversionResponse)
+@app.post("/convert", response_model=ConversionResponse, operation_id="convert_to_markdown")
 async def convert_to_markdown(request: ConversionRequest):
     """
-    Converte um recurso (URL) para Markdown.
+    Converte uma URL para Markdown.
     """
     try:
-        result = md.convert_uri(str(request.uri))
+        result = md.convert_uri(request.uri)
         return ConversionResponse(markdown=result.markdown)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/health")
+@app.get("/health", include_in_schema=False)
 async def health_check():
     return {"status": "ok"}
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="Triturador MarkItDown",
+        version="1.0.0",
+        description="Conversor de URLs e arquivos para Markdown. Use esta ação para ler conteúdo de sites e documentos.",
+        routes=app.routes,
+    )
+    openapi_schema["openapi"] = "3.0.0"
+    openapi_schema["servers"] = [{"url": "https://markitdown-mcp-lgqg.onrender.com"}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
