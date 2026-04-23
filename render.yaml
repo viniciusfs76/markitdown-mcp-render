@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: markitdown-mcp
+    env: docker
+    plan: free
+    dockerCommand: "markitdown-mcp --http --host 0.0.0.0 --port $PORT"
