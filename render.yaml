@@ -3,3 +3,6 @@ services:
     name: markitdown-mcp
     env: docker
     plan: free
+    envSpecificDetails:
+      dockerfilePath: Dockerfile
+      dockerContext: .
