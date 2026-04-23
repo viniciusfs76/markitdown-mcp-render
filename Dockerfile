@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Instalar as bibliotecas necessárias
-RUN pip install --no-cache-dir markitdown fastapi uvicorn pydantic python-multipart
+RUN pip install --no-cache-dir "markitdown[pdf]" fastapi uvicorn pydantic python-multipart
 
 # Copiar o código customizado (main.py)
 COPY main.py .
