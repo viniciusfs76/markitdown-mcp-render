@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from markitdown import MarkItDown
 from pydantic import BaseModel
 from fastapi.openapi.utils import get_openapi
@@ -6,6 +7,15 @@ import os
 import uvicorn
 
 app = FastAPI()
+
+# Configuração de CORS para permitir acesso do ChatGPT
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://chatgpt.com", "https://openai.com"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 md = MarkItDown()
 
