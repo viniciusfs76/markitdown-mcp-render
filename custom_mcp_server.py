@@ -137,6 +137,16 @@ class CustomMCPServer:
                 ]
             }
     
+    async def handle_options(self, request):
+        """Handle CORS preflight"""
+        return web.Response(
+            headers={
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Accept'
+            }
+        )
+    
     async def handle_request(self, request):
         """Handle MCP request"""
         try:
@@ -169,11 +179,13 @@ class CustomMCPServer:
             
             print(f"📤 Enviando: {json.dumps(result, indent=2)}")
             
-            return web.json_response(response)
+            resp = web.json_response(response)
+            resp.headers['Access-Control-Allow-Origin'] = '*'
+            return resp
             
         except Exception as e:
             print(f"❌ Erro: {e}")
-            return web.json_response({
+            resp = web.json_response({
                 "jsonrpc": "2.0",
                 "id": data.get("id") if 'data' in locals() else None,
                 "error": {
@@ -181,30 +193,14 @@ class CustomMCPServer:
                     "message": f"Internal error: {str(e)}"
                 }
             })
+            resp.headers['Access-Control-Allow-Origin'] = '*'
+            return resp
     
     async def create_app(self):
         """Create web application"""
         app = web.Application()
         app.router.add_post('/mcp', self.handle_request)
-        
-        # Add CORS middleware
-        async def cors_middleware(request, handler):
-            if request.method == 'OPTIONS':
-                return web.Response(
-                    headers={
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                        'Access-Control-Allow-Headers': 'Content-Type'
-                    }
-                )
-            
-            response = await handler(request)
-            response.headers['Access-Control-Allow-Origin'] = '*'
-            response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-            response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-            return response
-        
-        app.middlewares.append(cors_middleware)
+        app.router.add_options('/mcp', self.handle_options)
         return app
 
 async def main():
