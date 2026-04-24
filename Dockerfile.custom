@@ -1,0 +1,33 @@
+FROM python:3.13-slim-bullseye
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV EXIFTOOL_PATH=/usr/bin/exiftool
+ENV FFMPEG_PATH=/usr/bin/ffmpeg
+ENV MARKITDOWN_ENABLE_PLUGINS=True
+
+# Runtime dependency
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    exiftool \
+    curl \
+    procps
+
+# Cleanup
+RUN rm -rf /var/lib/apt/lists/*
+
+# Install markitdown and aiohttp
+RUN pip --no-cache-dir install markitdown aiohttp
+
+WORKDIR /app
+
+# Copy our custom MCP server
+COPY custom_mcp_server.py .
+
+# Default USERID and GROUPID
+ARG USERID=nobody
+ARG GROUPID=nogroup
+
+USER $USERID:$GROUPID
+
+# Run our custom server
+CMD ["python", "custom_mcp_server.py"]
